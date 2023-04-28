@@ -1,11 +1,6 @@
 // https://www.30secondsofcode.org/articles/s/js-data-structures-tree/#:~:text=A%20tree%20is%20a%20data,any%20children%20are%20the%20leaves.
 class TreeNode {
-  key: string;
-  value: {};
-  parent: any;
-  children: string[];
-
-  constructor(key: string, value = {}, parent = null) {
+  constructor(key, value = {}, parent = null) {
     this.key = key;
     this.value = value;
     this.parent = parent;
@@ -21,13 +16,13 @@ class TreeNode {
   }
 }
 
-export class Tree {
-  root: any;
-  constructor(key: string, value = {}) {
+module.exports.Tree = class Tree {
+  root;
+  constructor(key, value = {}) {
     this.root = new TreeNode(key, value);
   }
 
-  *preOrderTraversal(node = this.root): any {
+  *preOrderTraversal(node = this.root) {
     yield node;
     if (node.children.length) {
       for (let child of node.children) {
@@ -36,7 +31,7 @@ export class Tree {
     }
   }
 
-  *postOrderTraversal(node = this.root): any {
+  *postOrderTraversal(node = this.root) {
     if (node.children.length) {
       for (let child of node.children) {
         yield* this.postOrderTraversal(child);
@@ -45,7 +40,7 @@ export class Tree {
     yield node;
   }
 
-  insert(type: string, parentNodeKey: any, key: string, value = {}) {
+  insert(type, parentNodeKey, key, value = {}) {
     if (key === this.root.key) {
       this.root.value = { ...{ value }, ...this.root.value };
     } else {
@@ -58,10 +53,6 @@ export class Tree {
           }
           node.children.push(new TreeNode(key, {}, node));
 
-          console.log('------ .. -- node');
-          console.log(node);
-          console.log(node.value);
-
           return true;
         }
       }
@@ -69,9 +60,9 @@ export class Tree {
     return false;
   }
 
-  remove(key: string) {
+  remove(key) {
     for (let node of this.preOrderTraversal()) {
-      const filtered = node.children.filter((c: any) => c.key !== key);
+      const filtered = node.children.filter((c) => c.key !== key);
       if (filtered.length !== node.children.length) {
         node.children = filtered;
         return true;
@@ -80,10 +71,10 @@ export class Tree {
     return false;
   }
 
-  find(key: string) {
+  find(key) {
     for (let node of this.preOrderTraversal()) {
       if (node.key === key) return node;
     }
     return undefined;
   }
-}
+};

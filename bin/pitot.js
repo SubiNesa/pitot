@@ -9,7 +9,7 @@ var tree_1 = require("./tree");
 var tree = null;
 function delint(sourceFile) {
     var srcs = [];
-    console.log('delint: ' + sourceFile.fileName);
+    var dirname = path.dirname(sourceFile.fileName);
     delintNode(sourceFile);
     function delintNode(node) {
         switch (node.kind) {
@@ -50,12 +50,12 @@ function delint(sourceFile) {
                 var something = node;
                 var text = something.moduleSpecifier.getText().replace(/[']/g, '');
                 var file = text + '.ts';
-                //const src = path.resolve(path.join('src', file));
-                var src = path.join('src', file);
+                var src = path.resolve(path.join(dirname, file));
                 if (text.includes('module') || text.includes('controller') || text.includes('service')) {
                     console.log('src: ' + src);
                     console.log('text: ' + text);
-                    tree.insert('imports', sourceFile.fileName, src, src);
+                    tree.insert('imports', path.resolve(sourceFile.fileName), src, src);
+                    console.log('------');
                     if ((0, fs_1.existsSync)(src)) {
                         srcs.push({ src: src });
                     }
@@ -84,7 +84,7 @@ function readFile(fileName) {
 }
 function main(fileNames) {
     fileNames.forEach(function (file) {
-        tree = new tree_1.Tree(file, {});
+        tree = new tree_1.Tree(path.resolve(file), { imports: [] });
         readFile(file);
     });
     console.log(tree);

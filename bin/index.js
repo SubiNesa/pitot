@@ -47,6 +47,7 @@ program
     .action(function (options) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
         try {
+            console.log(options);
             (0, pitot_1.main)(options.files);
         }
         catch (err) {

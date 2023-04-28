@@ -7,7 +7,9 @@ let tree: any = null;
 
 export function delint(sourceFile: ts.SourceFile) {
   let srcs: any = [];
-  console.log('delint: ' + sourceFile.fileName);
+
+  const dirname = path.dirname(sourceFile.fileName);
+
   delintNode(sourceFile);
 
   function delintNode(node: ts.Node) {
@@ -54,14 +56,15 @@ export function delint(sourceFile: ts.SourceFile) {
         const something = node as ts.ImportDeclaration;
         const text = something.moduleSpecifier.getText().replace(/[']/g, '');
         const file = text + '.ts';
-        //const src = path.resolve(path.join('src', file));
-        const src = path.join('src', file);
+        const src = path.resolve(path.join(dirname, file));
 
         if (text.includes('module') || text.includes('controller') || text.includes('service')) {
           console.log('src: ' + src);
           console.log('text: ' + text);
 
-          tree.insert('imports', sourceFile.fileName, src, src);
+          tree.insert('imports', path.resolve(sourceFile.fileName), src, src);
+
+          console.log('------');
 
           if (existsSync(src)) {
             srcs.push({ src });
@@ -100,7 +103,7 @@ function readFile(fileName: string) {
 
 export function main(fileNames: string[]) {
   fileNames.forEach((file) => {
-    tree = new Tree(file, {});
+    tree = new Tree(path.resolve(file), { imports: [] });
     readFile(file);
   });
 
