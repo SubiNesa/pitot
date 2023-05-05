@@ -40,25 +40,38 @@ module.exports.Tree = class Tree {
     yield node;
   }
 
-  insert(type, parentNodeKey, key, value = {}) {
-    if (key === this.root.key) {
-      this.root.value = { ...{ value }, ...this.root.value };
-    } else {
-      for (let node of this.preOrderTraversal()) {
-        if (node.key === parentNodeKey) {
-          if (!node.value[type]) {
-            node.value[type] = [value];
-          } else {
-            node.value[type] = [...[value], ...node.value[type]];
-          }
+  insert(parentNodeKey, key, value = {}, setChild = true) {
+    for (let node of this.preOrderTraversal()) {
+      if (node.key === parentNodeKey) {
+        node.value = value;
+        if (setChild) {
           node.children.push(new TreeNode(key, {}, node));
-
-          return true;
         }
+        return true;
       }
     }
     return false;
   }
+
+  // insert(type, parentNodeKey, key, value = {}) {
+  //   if (key === this.root.key) {
+  //     this.root.value = { ...{ value }, ...this.root.value };
+  //   } else {
+  //     for (let node of this.preOrderTraversal()) {
+  //       if (node.key === parentNodeKey) {
+  //         if (!node.value[type]) {
+  //           node.value[type] = [value];
+  //         } else {
+  //           node.value[type] = [...[value], ...node.value[type]];
+  //         }
+  //         node.children.push(new TreeNode(key, {}, node));
+
+  //         return true;
+  //       }
+  //     }
+  //   }
+  //   return false;
+  // }
 
   remove(key) {
     for (let node of this.preOrderTraversal()) {

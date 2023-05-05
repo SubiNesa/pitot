@@ -10,6 +10,9 @@ export function delint(sourceFile: ts.SourceFile) {
 
   const dirname = path.dirname(sourceFile.fileName);
 
+  console.log('=======================================');
+  console.log('|--> fileName: ' + sourceFile.fileName);
+  console.log('=======================================');
   delintNode(sourceFile);
 
   function delintNode(node: ts.Node) {
@@ -40,16 +43,73 @@ export function delint(sourceFile: ts.SourceFile) {
         break;
 
       case ts.SyntaxKind.BinaryExpression:
-        console.log('delintNode: BinaryExpression');
+        // console.log('delintNode: BinaryExpression');
         const op = (node as ts.BinaryExpression).operatorToken.kind;
+        if (sourceFile.fileName.includes('rewards.service')) {
+          console.log({ op });
+        }
         if (op === ts.SyntaxKind.EqualsEqualsToken || op === ts.SyntaxKind.ExclamationEqualsToken) {
           report(node, "Use '===' and '!=='.");
         }
         break;
 
-      case ts.SyntaxKind.FunctionType:
-        console.log('delintNode: FunctionType');
-        // console.log(node);
+      case ts.SyntaxKind.ClassDeclaration:
+        console.log('delintNode: ClassDeclaration');
+        if (sourceFile.fileName.includes('rewards.service')) {
+          const cl = node as ts.ClassDeclaration;
+
+          const currentNode = tree.find(path.resolve(sourceFile.fileName));
+
+          if (currentNode && cl.name?.getText()) {
+            if (currentNode && !currentNode?.value?.functions) {
+              currentNode.value.funcs = new Map();
+            }
+
+            currentNode.value.className = cl.name?.getText();
+            tree.insert(
+              path.resolve(sourceFile.fileName),
+              path.resolve(sourceFile.fileName),
+              currentNode?.value ?? {},
+              false,
+            );
+          }
+
+          console.log('>>> ' + cl.members.length);
+          cl.members.forEach((memb) => {
+            // console.log(memb); // parameters, body
+            console.log('= = = = = = = = >  >  > ' + memb.name?.getText());
+            if (memb.name?.getText()) {
+              currentNode.value.funcs.set(memb.name?.getText(), {});
+              tree.insert(
+                path.resolve(sourceFile.fileName),
+                path.resolve(sourceFile.fileName),
+                currentNode?.value ?? {},
+                false,
+              );
+              delintNode(memb);
+            }
+          });
+        }
+        break;
+
+      case ts.SyntaxKind.ClassExpression:
+        // console.log('delintNode: ClassExpression');
+        break;
+
+      case ts.SyntaxKind.ClassKeyword:
+        // console.log('delintNode: ClassKeyword');
+        break;
+
+      case ts.SyntaxKind.ClassStaticBlockDeclaration:
+        // console.log('delintNode: ClassStaticBlockDeclaration');
+        break;
+
+      case ts.SyntaxKind.FunctionType ||
+        ts.SyntaxKind.ArrowFunction ||
+        ts.SyntaxKind.FunctionDeclaration ||
+        ts.SyntaxKind.FunctionKeyword:
+        // console.log('delintNode: FunctionType');
+        console.log(node);
         break;
       case ts.SyntaxKind.ImportDeclaration:
         console.log('ImportDeclaration');
@@ -62,9 +122,19 @@ export function delint(sourceFile: ts.SourceFile) {
           console.log('src: ' + src);
           console.log('text: ' + text);
 
-          tree.insert('imports', path.resolve(sourceFile.fileName), src, src);
+          const currentNode = tree.find(path.resolve(sourceFile.fileName));
 
-          console.log('------');
+          if (currentNode) {
+            if (currentNode && !currentNode?.value?.imports) {
+              currentNode.value.imports = [];
+            }
+
+            currentNode.value.imports.push(src);
+          }
+          console.log('____________________________________');
+          console.log('++ insert ' + path.resolve(sourceFile.fileName) + ' ' + src);
+          tree.insert(path.resolve(sourceFile.fileName), src, currentNode?.value ?? {});
+          console.log('____________________________________');
 
           if (existsSync(src)) {
             srcs.push({ src });
@@ -112,6 +182,9 @@ export function main(fileNames: string[]) {
   tree.root.children.forEach((child: any) => {
     console.log(child);
   });
+
+  const test = tree.find('/Users/suba/Documents/Dev/standup_test/apps/api/src/app/rewards/rewards.service.ts');
+  console.log(test?.value);
 }
 
 /*

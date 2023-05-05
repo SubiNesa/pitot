@@ -10,8 +10,12 @@ var tree = null;
 function delint(sourceFile) {
     var srcs = [];
     var dirname = path.dirname(sourceFile.fileName);
+    console.log('=======================================');
+    console.log('|--> fileName: ' + sourceFile.fileName);
+    console.log('=======================================');
     delintNode(sourceFile);
     function delintNode(node) {
+        var _a, _b, _c, _d, _e, _f;
         switch (node.kind) {
             case ts.SyntaxKind.ForStatement:
             case ts.SyntaxKind.ForInStatement:
@@ -35,15 +39,55 @@ function delint(sourceFile) {
                 }
                 break;
             case ts.SyntaxKind.BinaryExpression:
-                console.log('delintNode: BinaryExpression');
+                // console.log('delintNode: BinaryExpression');
                 var op = node.operatorToken.kind;
+                if (sourceFile.fileName.includes('rewards.service')) {
+                    console.log({ op: op });
+                }
                 if (op === ts.SyntaxKind.EqualsEqualsToken || op === ts.SyntaxKind.ExclamationEqualsToken) {
                     report(node, "Use '===' and '!=='.");
                 }
                 break;
-            case ts.SyntaxKind.FunctionType:
-                console.log('delintNode: FunctionType');
-                // console.log(node);
+            case ts.SyntaxKind.ClassDeclaration:
+                console.log('delintNode: ClassDeclaration');
+                if (sourceFile.fileName.includes('rewards.service')) {
+                    var cl = node;
+                    var currentNode_1 = tree.find(path.resolve(sourceFile.fileName));
+                    if (currentNode_1 && ((_a = cl.name) === null || _a === void 0 ? void 0 : _a.getText())) {
+                        if (currentNode_1 && !((_b = currentNode_1 === null || currentNode_1 === void 0 ? void 0 : currentNode_1.value) === null || _b === void 0 ? void 0 : _b.functions)) {
+                            currentNode_1.value.funcs = new Map();
+                        }
+                        currentNode_1.value.className = (_c = cl.name) === null || _c === void 0 ? void 0 : _c.getText();
+                        tree.insert(path.resolve(sourceFile.fileName), path.resolve(sourceFile.fileName), (_d = currentNode_1 === null || currentNode_1 === void 0 ? void 0 : currentNode_1.value) !== null && _d !== void 0 ? _d : {}, false);
+                    }
+                    console.log('>>> ' + cl.members.length);
+                    cl.members.forEach(function (memb) {
+                        var _a, _b, _c, _d;
+                        // console.log(memb); // parameters, body
+                        console.log('= = = = = = = = >  >  > ' + ((_a = memb.name) === null || _a === void 0 ? void 0 : _a.getText()));
+                        if ((_b = memb.name) === null || _b === void 0 ? void 0 : _b.getText()) {
+                            currentNode_1.value.funcs.set((_c = memb.name) === null || _c === void 0 ? void 0 : _c.getText(), {});
+                            tree.insert(path.resolve(sourceFile.fileName), path.resolve(sourceFile.fileName), (_d = currentNode_1 === null || currentNode_1 === void 0 ? void 0 : currentNode_1.value) !== null && _d !== void 0 ? _d : {}, false);
+                            delintNode(memb);
+                        }
+                    });
+                }
+                break;
+            case ts.SyntaxKind.ClassExpression:
+                // console.log('delintNode: ClassExpression');
+                break;
+            case ts.SyntaxKind.ClassKeyword:
+                // console.log('delintNode: ClassKeyword');
+                break;
+            case ts.SyntaxKind.ClassStaticBlockDeclaration:
+                // console.log('delintNode: ClassStaticBlockDeclaration');
+                break;
+            case ts.SyntaxKind.FunctionType ||
+                ts.SyntaxKind.ArrowFunction ||
+                ts.SyntaxKind.FunctionDeclaration ||
+                ts.SyntaxKind.FunctionKeyword:
+                // console.log('delintNode: FunctionType');
+                console.log(node);
                 break;
             case ts.SyntaxKind.ImportDeclaration:
                 console.log('ImportDeclaration');
@@ -54,8 +98,17 @@ function delint(sourceFile) {
                 if (text.includes('module') || text.includes('controller') || text.includes('service')) {
                     console.log('src: ' + src);
                     console.log('text: ' + text);
-                    tree.insert('imports', path.resolve(sourceFile.fileName), src, src);
-                    console.log('------');
+                    var currentNode = tree.find(path.resolve(sourceFile.fileName));
+                    if (currentNode) {
+                        if (currentNode && !((_e = currentNode === null || currentNode === void 0 ? void 0 : currentNode.value) === null || _e === void 0 ? void 0 : _e.imports)) {
+                            currentNode.value.imports = [];
+                        }
+                        currentNode.value.imports.push(src);
+                    }
+                    console.log('____________________________________');
+                    console.log('++ insert ' + path.resolve(sourceFile.fileName) + ' ' + src);
+                    tree.insert(path.resolve(sourceFile.fileName), src, (_f = currentNode === null || currentNode === void 0 ? void 0 : currentNode.value) !== null && _f !== void 0 ? _f : {});
+                    console.log('____________________________________');
                     if ((0, fs_1.existsSync)(src)) {
                         srcs.push({ src: src });
                     }
@@ -92,6 +145,8 @@ function main(fileNames) {
     tree.root.children.forEach(function (child) {
         console.log(child);
     });
+    var test = tree.find('/Users/suba/Documents/Dev/standup_test/apps/api/src/app/rewards/rewards.service.ts');
+    console.log(test === null || test === void 0 ? void 0 : test.value);
 }
 exports.main = main;
 /*
